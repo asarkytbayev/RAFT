@@ -1,7 +1,14 @@
 package com.neu.project3.raft.responses;
 
-public class VoteResponse {
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-    String term;
+@Setter
+@Getter
+@NoArgsConstructor
+public class VoteResponse {
+    Integer term;
     Boolean voteGranted;
+    Integer selfId;
 }
