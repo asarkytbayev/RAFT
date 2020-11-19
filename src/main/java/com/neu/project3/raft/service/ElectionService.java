@@ -6,6 +6,7 @@ import com.neu.project3.raft.models.State;
 import com.neu.project3.raft.requests.VoteRequest;
 import com.neu.project3.raft.responses.VoteResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,7 +24,10 @@ public class ElectionService {
         this.voteRequestSender = voteRequestSender;
     }
 
+    @Scheduled(fixedDelay = 1000)
     public void initElection(){
+        // need to add a random time out here (sleep)
+        // spring will ensure that this is running in background
         informationService.setCurrentTerm(informationService.getCurrentTerm() + 1);
         informationService.setCurrentState(State.CANDIDATE);
         informationService.setVotedFor(informationService.getSelf().id);
