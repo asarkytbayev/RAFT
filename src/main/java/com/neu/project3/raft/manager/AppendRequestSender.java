@@ -25,10 +25,10 @@ public class AppendRequestSender {
         this.informationService = informationService;
     }
 
-    public AppendEntryResponse sendAppendResponse(AppendEntryRequest appendEntryRequest) {
+    public AppendEntryResponse sendAppendResponse(AppendEntryRequest appendEntryRequest, Integer peerId) {
         try {
             HttpEntity payload = HttpEntityFactory.createObjectWithBodyAndHeaders(getHttpHeaderObject(), appendEntryRequest);
-            return restTemplate.postForObject(getPathToSend(appendEntryRequest), payload, AppendEntryResponse.class);
+            return restTemplate.postForObject(getPathToSend(peerId), payload, AppendEntryResponse.class);
         }catch (Exception e) {
             // todo
            return null;
@@ -42,8 +42,8 @@ public class AppendRequestSender {
         return headers;
     }
 
-    private String getPathToSend(AppendEntryRequest appendEntryRequest){
-        return informationService.getLeader().hostname + APPEND_PATH;
+    private String getPathToSend(Integer peerId){
+        return informationService.getPeerList().get(peerId - 1).hostname + APPEND_PATH;
     }
 
 }
