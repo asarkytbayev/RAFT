@@ -31,6 +31,12 @@ public class InformationService {
         this.peerList = parseFileAndGetPeers(peerFile);
         this.self = this.peerList.get(Integer.parseInt(selfId)-1);
         this.logEntryList = new ArrayList<>();
+        this.currentTerm = 0;
+        this.currentLog = 0;
+        this.votedFor = -1;
+        this.logEntryList.add(new LogEntry("init", 0));
+        this.currentState = State.FOLLOWER;
+        this.currentLog = 0;
     }
 
     public Peer getLeader(){

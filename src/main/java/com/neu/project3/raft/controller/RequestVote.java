@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController("/RequestVote")
+@RestController
 public class RequestVote {
 
     private RequestVoteService requestVoteService;
@@ -17,7 +17,7 @@ public class RequestVote {
         this.requestVoteService = requestVoteService;
     }
 
-    @PostMapping(value = "/request")
+    @PostMapping(value = "/request_vote")
     VoteResponse requestVote(VoteRequest request){
         return this.requestVoteService.checkVoteRequest(request);
     }
