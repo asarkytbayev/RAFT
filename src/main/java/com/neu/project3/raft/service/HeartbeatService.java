@@ -29,7 +29,7 @@ public class HeartbeatService {
         List<HeartbeatResponse> responseList = new ArrayList<>();
         HeartbeatRequest request = getHeartbeatRequest();
         // need to add random delay
-        for(Peer p : informationService.getPeerList()){
+        for(Peer p : InformationService.peerList){
             // need to add reactive annotation to add parallel calls
             responseList.add(this.heartbeatSender.sendHeartBeat(request, p.id));
         }

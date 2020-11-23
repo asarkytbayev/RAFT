@@ -17,26 +17,49 @@ import java.util.List;
 @Setter
 public class InformationService {
 
-    private List<Peer> peerList;
-    private List<LogEntry> logEntryList;
-    private Peer leader;
-    private Peer self;
-    private Integer currentTerm;
-    private State currentState;
-    private Integer currentLog;
-    private Integer votedFor;
+    /* Persistent State */
+    // latest term server has seen
+    public static volatile Integer votedFor;
+
+    // candidate id that received vote in current term
+    public static volatile Integer currentTerm;
+
+    // log entries, first index is 1
+    public static volatile List<LogEntry> logEntryList;
+
+    /* Volatile state on server */
+    // index of highest log entry known to be committed, init 0
+    public static Integer commitIndex;
+    // index of highest log entry applied to state machine
+    public static Integer lastApplied;
+
+    /* Volatile state on leader */
+
+    // index on the next log entry to send to that server
+    public static List<Integer> nextIndex;
+
+    // for each server, index of the highest log entry known to be replicated on the server
+    public static List<Integer> matchIndex;
+
+    public static volatile List<Peer> peerList;
+    public static volatile Peer leader;
+    public static volatile Peer self;
+    public static volatile State currentState;
+    public static volatile Integer currentLog;
+    public static volatile Long lastTimeStampReceived;
 
     @Autowired
     public InformationService(@Value("${peer_file_list}") String peerFile, @Value("${self_id}") String selfId){
-        this.peerList = parseFileAndGetPeers(peerFile);
-        this.self = this.peerList.get(Integer.parseInt(selfId)-1);
-        this.logEntryList = new ArrayList<>();
-        this.currentTerm = 0;
-        this.currentLog = 0;
-        this.votedFor = -1;
-        this.logEntryList.add(new LogEntry("init", 0));
-        this.currentState = State.FOLLOWER;
-        this.currentLog = 0;
+        InformationService.peerList = parseFileAndGetPeers(peerFile);
+        InformationService.self = InformationService.peerList.get(Integer.parseInt(selfId)-1);
+        InformationService.logEntryList = new ArrayList<>();
+        InformationService.currentTerm = 0;
+        InformationService.currentLog = 0;
+        InformationService.votedFor = -1;
+        InformationService.logEntryList.add(new LogEntry("init", 0));
+        InformationService.currentState = State.FOLLOWER;
+        InformationService.currentLog = 0;
+        InformationService.lastTimeStampReceived = 0L;
     }
 
     public Peer getLeader(){

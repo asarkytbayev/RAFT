@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class AppendEntries {
+public class AppendEntryController {
 
     private AppendEntryService appendEntryService;
 
     @Autowired
-    public AppendEntries(AppendEntryService appendEntryService){
+    public AppendEntryController(AppendEntryService appendEntryService){
         this.appendEntryService = appendEntryService;
     }
 
