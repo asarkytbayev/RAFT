@@ -45,6 +45,6 @@ public class VoteRequestSender {
     }
 
     private String getPathToSend(Integer peerId){
-        return informationService.getPeerList().get(peerId - 1).hostname + VOTE_REQUEST_PATH;
+        return InformationService.peerList.get(peerId - 1).hostname + VOTE_REQUEST_PATH;
     }
 }

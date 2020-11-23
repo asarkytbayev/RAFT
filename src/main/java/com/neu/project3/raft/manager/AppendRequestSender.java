@@ -43,7 +43,7 @@ public class AppendRequestSender {
     }
 
     private String getPathToSend(Integer peerId){
-        return informationService.getPeerList().get(peerId - 1).hostname + APPEND_PATH;
+        return InformationService.peerList.get(peerId - 1).hostname + APPEND_PATH;
     }
 
 }
