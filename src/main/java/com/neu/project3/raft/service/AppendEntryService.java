@@ -28,7 +28,6 @@ public class AppendEntryService {
         if (InformationService.currentTerm > appendEntryRequest.getTerm()){
             return new AppendEntryResponse(InformationService.currentTerm, false, InformationService.self.id);
         }
-
         else if(logEntryList.size() == 0){
             return new AppendEntryResponse(InformationService.currentTerm, false, InformationService.self.id);
         }

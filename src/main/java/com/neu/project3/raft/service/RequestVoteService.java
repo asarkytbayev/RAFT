@@ -18,6 +18,7 @@ public class RequestVoteService {
 
     public synchronized VoteResponse checkVoteRequest(VoteRequest voteRequest){
         if (InformationService.votedFor == -1 && voteRequest.getLastLogTerm() >= InformationService.currentLog){
+            // save voted for information
             return new VoteResponse(InformationService.currentTerm, true, InformationService.self.id);
         }
         else if (InformationService.votedFor == voteRequest.getCandidateId() && voteRequest.getLastLogTerm() >= InformationService.currentLog){
