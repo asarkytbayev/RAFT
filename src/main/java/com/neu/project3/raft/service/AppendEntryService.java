@@ -44,24 +44,27 @@ public class AppendEntryService {
             return new AppendEntryResponse(InformationService.currentTerm, false, InformationService.self.id,
                     true);
         }
-        //Reply false if log does not contain an entry at prevLogIndex whose term matches prevLogTerm
-        LogEntry logEntry = InformationService.logEntryList.get(prevLogIndex);
-        if (prevLogTerm >= 0 & logEntry.term != prevLogTerm) {
+        //Reply false if log contains an entry at prevLogIndex but it's term does not match prevLogTerm
+        LogEntry logEntry = prevLogIndex >= 0 ? InformationService.logEntryList.get(prevLogIndex) : null;
+        if (prevLogTerm >= 0 && logEntry != null &&  logEntry.term != prevLogTerm) {
             return new AppendEntryResponse(InformationService.currentTerm, false, InformationService.self.id,
                     true);
         }
         return acceptAppendEntryRequest(appendEntryRequest);
     }
 
+
+
     public AppendEntryResponse acceptAppendEntryRequest(AppendEntryRequest appendReq){
         // TODO: Test the behaviour.
         int prevLogIndex = appendReq.getPrevLogIndex();
         List<LogEntry> entriesToAdd = appendReq.getEntries();
-        InformationService.logEntryList.subList(0, prevLogIndex + 1);
+        InformationService.logEntryList = InformationService.logEntryList.subList(0, prevLogIndex + 1);
         InformationService.logEntryList.addAll(entriesToAdd);
 
         InformationService.commitIndex = Math.min(appendReq.getLeaderCommit(),
                 InformationService.logEntryList.size() - 1);
+        System.out.println("\n\nCurrent State: " + InformationService.logEntryList.toString());
         return new AppendEntryResponse(InformationService.currentTerm, true, InformationService.self.id,
                 false);
         // 3. if an existing entry conflicts with a new one, delete the existing entry and all that follow it
@@ -78,7 +81,7 @@ public class AppendEntryService {
         return appendReq;
     }
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 15000)
     void sendAppendEntriesToPeers() {
         if (!InformationService.isLeader()) {
             return;
@@ -90,11 +93,13 @@ public class AppendEntryService {
             Integer currentPeerLogIndex = InformationService.peersLogStatus.get(peer);
             int lastEntryTerm = -1;
 
+            // Check if the the index is within boundaries of the log entries.
             if (currentPeerLogIndex >= 0 && currentPeerLogIndex < InformationService.logEntryList.size()) {
                 lastEntryTerm = InformationService.logEntryList.get(currentPeerLogIndex).getTerm();
             }
             List<LogEntry> logEntries = new ArrayList<>();
-            for (int ii = 0; ii < InformationService.logEntryList.size(); ii++) {
+            //Add entries not present in peers that have to be appended.
+            for (int ii = Math.max(currentPeerLogIndex, 0); ii < InformationService.logEntryList.size(); ii++) {
                 if (logEntries.size() >= MAX_LOGS_TO_ADD) {
                     break;
                 }
@@ -110,9 +115,13 @@ public class AppendEntryService {
             AppendEntryResponse response = this.appendRequestSender.sendAppendResponse(appendReq, peer.getHostname());
             if (response != null) {
                 if (!response.getLogInConsistent()) {
+                    //Able to append logs. So increment the index based on the count of logs added.
                     int oldIndex = InformationService.peersLogStatus.get(peer);
+                    //System.out.println("Merge Success: " + currentPeerLogIndex + " " + response.toString());
                     InformationService.peersLogStatus.put(peer, oldIndex + logEntries.size());
                 } else {
+                    //System.out.println("Merge Failed: " + currentPeerLogIndex + " " + response.toString());
+                    //Decrement log index if peer doesn't have the entry sent to it currently.
                     InformationService.peersLogStatus.put(peer, Math.max(-1, currentPeerLogIndex - 1));
                 }
             } else {

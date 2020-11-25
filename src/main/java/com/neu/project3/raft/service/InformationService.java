@@ -22,6 +22,7 @@ import java.util.Map;
 @Setter
 public class InformationService {
 
+    /* Temporary leader for now. */
     private static String TEMP_LEADER_NAME = "hostname1";
 
     /* Persistent State */
@@ -68,19 +69,31 @@ public class InformationService {
         InformationService.commitIndex = -1;
         InformationService.currentLog = 0;
         InformationService.votedFor = -1;
-        InformationService.logEntryList.add(new LogEntry("init", 0));
+
         InformationService.currentState = State.FOLLOWER;
         InformationService.currentLog = 0;
         InformationService.lastTimeStampReceived = 0L;
         InformationService.peersLogStatus = new HashMap<>();
 
         onLeaderPromotion();
+        InformationService.logEntryList.add(new LogEntry("init", 0));
+
+        //TODO: remove this. Currently added for testing.
+        if (isLeader()) {
+            InformationService.logEntryList.add(new LogEntry("init2", 0));
+            InformationService.logEntryList.add(new LogEntry("init3", 0));
+            InformationService.logEntryList.add(new LogEntry("init4", 0));
+            InformationService.logEntryList.add(new LogEntry("init5", 0));
+            InformationService.logEntryList.add(new LogEntry("init6", 0));
+            InformationService.logEntryList.add(new LogEntry("init7", 0));
+            InformationService.logEntryList.add(new LogEntry("init8", 0));
+        }
     }
 
     public static boolean isLeader() {
         //TODO: After leader election code is complete, remove this. Now choosing first host as leader.
         return InformationService.self != null && InformationService.self.hostname.equals(TEMP_LEADER_NAME);
-        //return  true;
+        //return true;
         //return InformationService.leader.equals(InformationService.self);
     }
 
