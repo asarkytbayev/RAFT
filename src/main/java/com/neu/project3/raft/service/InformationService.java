@@ -97,6 +97,10 @@ public class InformationService {
         //return InformationService.leader.equals(InformationService.self);
     }
 
+    public static int getMajorityVote() {
+        return (peerList.size() / 2) + 1;
+    }
+
     /**
      * Call this function when after a peer is made a leader.
      */

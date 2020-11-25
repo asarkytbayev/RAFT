@@ -12,7 +12,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.java.Log;
 
@@ -81,13 +83,33 @@ public class AppendEntryService {
         return appendReq;
     }
 
+    /**
+     * Update commit index based on log indices of the peers.
+     */
+    public static int getCommitIndex(List<Integer> peerReplicationIndices, int minimumVotes) {
+        peerReplicationIndices = peerReplicationIndices.stream().
+                filter(val -> val >= 0).collect(Collectors.toList());
+        peerReplicationIndices.sort(Integer::compareTo);
+        Collections.reverse(peerReplicationIndices);
+        int result = -1;
+        for (int ii = 0; ii < peerReplicationIndices.size(); ii++) {
+            if (ii + 1 >= minimumVotes) {
+                result = peerReplicationIndices.get(ii);
+                break;
+            }
+        }
+        return result;
+    }
+
     @Scheduled(fixedDelay = 15000)
     void sendAppendEntriesToPeers() {
         if (!InformationService.isLeader()) {
             return;
         }
+        List<Integer> peerReplicationIndices = new ArrayList<>();
         for (Peer peer: InformationService.peerList) {
             if (peer.equals(InformationService.self)) {
+                peerReplicationIndices.add(InformationService.logEntryList.size() - 1);
                 continue;
             }
             Integer currentPeerLogIndex = InformationService.peersLogStatus.get(peer);
@@ -119,6 +141,7 @@ public class AppendEntryService {
                     int oldIndex = InformationService.peersLogStatus.get(peer);
                     //System.out.println("Merge Success: " + currentPeerLogIndex + " " + response.toString());
                     InformationService.peersLogStatus.put(peer, oldIndex + logEntries.size());
+                    peerReplicationIndices.add(oldIndex + logEntries.size());
                 } else {
                     //System.out.println("Merge Failed: " + currentPeerLogIndex + " " + response.toString());
                     //Decrement log index if peer doesn't have the entry sent to it currently.
@@ -128,6 +151,8 @@ public class AppendEntryService {
                 System.out.println("Null response: " + peer.toString());
             }
         }
+        InformationService.commitIndex = getCommitIndex(peerReplicationIndices,
+                InformationService.getMajorityVote());
     }
 
 
