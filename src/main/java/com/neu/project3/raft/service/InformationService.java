@@ -4,18 +4,25 @@ import com.neu.project3.raft.models.LogEntry;
 import com.neu.project3.raft.models.Peer;
 import com.neu.project3.raft.models.State;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Getter
 @Setter
 public class InformationService {
+
+    private static String TEMP_LEADER_NAME = "hostname1";
 
     /* Persistent State */
     // latest term server has seen
@@ -43,32 +50,73 @@ public class InformationService {
 
     public static volatile List<Peer> peerList;
     public static volatile Peer leader;
+
     public static volatile Peer self;
     public static volatile State currentState;
     public static volatile Integer currentLog;
     public static volatile Long lastTimeStampReceived;
 
+    public static Map<Peer, Integer> peersLogStatus;
+
     @Autowired
-    public InformationService(@Value("${peer_file_list}") String peerFile, @Value("${self_id}") String selfId){
+    public InformationService(@Value("${peer_file_list}") String peerFile, @Value("${self_id}") String selfId) {
         InformationService.peerList = parseFileAndGetPeers(peerFile);
-        InformationService.self = InformationService.peerList.get(Integer.parseInt(selfId)-1);
+        this.saveHostName();
+        //InformationService.self = InformationService.peerList.get(Integer.parseInt(selfId)-1);
         InformationService.logEntryList = new ArrayList<>();
         InformationService.currentTerm = 0;
+        InformationService.commitIndex = -1;
         InformationService.currentLog = 0;
         InformationService.votedFor = -1;
         InformationService.logEntryList.add(new LogEntry("init", 0));
         InformationService.currentState = State.FOLLOWER;
         InformationService.currentLog = 0;
         InformationService.lastTimeStampReceived = 0L;
+        InformationService.peersLogStatus = new HashMap<>();
+
+        onLeaderPromotion();
     }
 
-    public Peer getLeader(){
+    public static boolean isLeader() {
+        //TODO: After leader election code is complete, remove this. Now choosing first host as leader.
+        return InformationService.self != null && InformationService.self.hostname.equals(TEMP_LEADER_NAME);
+        //return  true;
+        //return InformationService.leader.equals(InformationService.self);
+    }
+
+    /**
+     * Call this function when after a peer is made a leader.
+     */
+    public static void onLeaderPromotion() {
+        if (!isLeader()) {
+            return;
+        }
+        initPeerLogsStatus();
+    }
+
+    private static void initPeerLogsStatus() {
+        for (Peer peer : InformationService.peerList) {
+            InformationService.peersLogStatus.put(peer, InformationService.logEntryList.size() - 1);
+        }
+    }
+
+    private void saveHostName() {
+        try {
+        String hostname = InetAddress.getLocalHost().getHostName().trim();
+        InformationService.self = InformationService.peerList.stream()
+                .filter(peer -> peer.hostname.equals(hostname)).findFirst().get();
+        } catch (Exception ex) {
+            System.out.println("Error in getHostname: " + ex.getMessage());
+        }
+    }
+
+    public Peer getLeader() {
         return leader;
     }
 
     List<Peer> parseFileAndGetPeers(String peerFile){
         // todo, read from file, right now we are hard coding 5 nodes
-        Peer peer1 = new Peer(1, "hostname1");
+        Peer peer1 = new Peer(1, TEMP_LEADER_NAME);
         Peer peer2 = new Peer(2, "hostname2");
         Peer peer3 = new Peer(3, "hostname3");
         Peer peer4 = new Peer(4, "hostname4");

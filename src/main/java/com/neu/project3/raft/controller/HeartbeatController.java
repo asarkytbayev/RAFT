@@ -20,7 +20,7 @@ public class HeartbeatController {
     }
 
     @PostMapping(value = "/heartbeat")
-    String heartbeatResponse(HeartbeatRequest request){
+    String heartbeatResponse(HeartbeatRequest request) {
         return "ok";
         // return this.heartbeatService (request);
     }
