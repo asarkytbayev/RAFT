@@ -43,6 +43,6 @@ public class HeartbeatSender {
     }
 
     private String getPathToSend(Integer peerId){
-        return InformationService.peerList.get(peerId - 1).hostname + HEARTBEAT_PATH;
+        return informationService.peerList.get(peerId - 1).hostname + HEARTBEAT_PATH;
     }
 }

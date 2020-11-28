@@ -5,6 +5,8 @@ import com.neu.project3.raft.responses.VoteResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class RequestVoteService {
 
@@ -17,13 +19,27 @@ public class RequestVoteService {
 
     public synchronized VoteResponse checkVoteRequest(VoteRequest voteRequest) {
         System.out.println("Received vote request from: " + voteRequest.getCandidateId());
-        if (InformationService.votedFor == -1 && voteRequest.getLastLogTerm() >= InformationService.currentLog){
+        System.out.println(Instant.now().toEpochMilli());
+        Boolean voteGranted = false;
+        if (voteRequest.getTerm() < informationService.currentTerm) {
+            voteGranted = false;
+            return new VoteResponse(informationService.currentTerm, voteGranted, informationService.self.id);
+        } else if (informationService.votedFor != -1) {
+            voteGranted = false;
+            return new VoteResponse(informationService.currentTerm, voteGranted, informationService.self.id);
+        } else if (informationService.votedFor == -1 && voteRequest.getLastLogTerm() >= informationService.currentLog) {
             // save voted for information
-            return new VoteResponse(InformationService.currentTerm, true, InformationService.self.id);
+            informationService.votedFor = voteRequest.getCandidateId();
+            informationService.currentTerm = voteRequest.getTerm();
+            voteGranted = true;
+            return new VoteResponse(informationService.currentTerm, voteGranted, informationService.self.id);
         }
-        else if (InformationService.votedFor == voteRequest.getCandidateId() && voteRequest.getLastLogTerm() >= InformationService.currentLog){
-            return new VoteResponse(InformationService.currentTerm, true, InformationService.self.id);
+        else if (informationService.votedFor == voteRequest.getCandidateId() && voteRequest.getLastLogTerm() >= informationService.currentLog){
+            informationService.votedFor = voteRequest.getCandidateId();
+            informationService.currentTerm = voteRequest.getTerm();
+            voteGranted = true;
+            return new VoteResponse(informationService.currentTerm, voteGranted, informationService.self.id);
         }
-        return new VoteResponse(InformationService.currentTerm, false, InformationService.self.id);
+        return new VoteResponse(informationService.currentTerm, voteGranted, informationService.self.id);
     }
 }

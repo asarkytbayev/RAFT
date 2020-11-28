@@ -55,47 +55,49 @@ public class InformationService {
     public static volatile State currentState;
     public static volatile Integer currentLog;
     public static volatile Long lastTimeStampReceived;
+    public static volatile Long leaderTimeStamp;
 
     public static Map<Peer, Integer> peersLogStatus;
 
     @Autowired
     public InformationService(@Value("${peer_file_list}") String peerFile, @Value("${self_id}") String selfId) {
-        InformationService.peerList = parseFileAndGetPeers(peerFile);
+        this.peerList = parseFileAndGetPeers(peerFile);
         this.saveHostName();
-        //InformationService.self = InformationService.peerList.get(Integer.parseInt(selfId)-1);
-        InformationService.logEntryList = new ArrayList<>();
-        InformationService.currentTerm = 0;
-        InformationService.commitIndex = -1;
-        InformationService.currentLog = 0;
-        InformationService.votedFor = -1;
+        //this.self = this.peerList.get(Integer.parseInt(selfId)-1);
+        this.logEntryList = new ArrayList<>();
+        this.currentTerm = 0;
+        this.commitIndex = -1;
+        this.currentLog = 0;
+        this.votedFor = -1;
 
-        InformationService.currentState = State.FOLLOWER;
-        InformationService.currentLog = 0;
-        InformationService.lastTimeStampReceived = Instant.now().toEpochMilli();;
-        InformationService.peersLogStatus = new HashMap<>();
-        InformationService.self = InformationService.peerList.get(Integer.parseInt(selfId) - 1);
+        this.currentState = State.FOLLOWER;
+        this.currentLog = 0;
+        this.lastTimeStampReceived = Instant.now().toEpochMilli();;
+        this.peersLogStatus = new HashMap<>();
+//        this.self = this.peerList.get(Integer.parseInt(selfId) - 1);
 
         onLeaderPromotion();
-//        InformationService.logEntryList.add(new LogEntry("init", 0));
+//        this.logEntryList.add(new LogEntry("init", 0));
 //
 //        //TODO: remove this. Currently added for testing.
 //        if (isLeader()) {
-//            InformationService.logEntryList.add(new LogEntry("init2", 0));
-//            InformationService.logEntryList.add(new LogEntry("init3", 0));
-//            InformationService.logEntryList.add(new LogEntry("init4", 0));
-//            InformationService.logEntryList.add(new LogEntry("init5", 0));
-//            InformationService.logEntryList.add(new LogEntry("init6", 0));
-//            InformationService.logEntryList.add(new LogEntry("init7", 0));
-//            InformationService.logEntryList.add(new LogEntry("init8", 0));
+//            this.logEntryList.add(new LogEntry("init2", 0));
+//            this.logEntryList.add(new LogEntry("init3", 0));
+//            this.logEntryList.add(new LogEntry("init4", 0));
+//            this.logEntryList.add(new LogEntry("init5", 0));
+//            this.logEntryList.add(new LogEntry("init6", 0));
+//            this.logEntryList.add(new LogEntry("init7", 0));
+//            this.logEntryList.add(new LogEntry("init8", 0));
 //        }
+        System.out.println(this.self.hostname);
     }
 
     public static boolean isLeader() {
         //TODO: After leader election code is complete, remove this. Now choosing first host as leader.
-//        return InformationService.self != null && InformationService.self.hostname.equals(TEMP_LEADER_NAME);
+//        return this.self != null && this.self.hostname.equals(TEMP_LEADER_NAME);
         //return true;
-//        return InformationService.leader.equals(InformationService.self);
-        return InformationService.currentState == State.LEADER;
+//        return this.leader.equals(this.self);
+        return currentState == State.LEADER;
     }
 
     public static int getMajorityVote() {
@@ -125,7 +127,7 @@ public class InformationService {
     private void saveHostName() {
         try {
             String hostname = InetAddress.getLocalHost().getHostName().trim();
-            InformationService.self = InformationService.peerList.stream()
+            this.self = this.peerList.stream()
                     .filter(peer -> peer.hostname.equals(hostname)).findFirst().get();
         } catch (Exception ex) {
             System.out.println("Error in saveHostName(): " + ex.getMessage());
