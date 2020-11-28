@@ -70,13 +70,13 @@ public class ElectionService {
             if (p == informationService.self) {
                 continue;
             }
-            System.out.println(Instant.now().toEpochMilli());
-            System.out.println("sending request vote rpc to: " + p.hostname);
+//            System.out.println(Instant.now().toEpochMilli());
+//            System.out.println("sending request vote rpc to: " + p.hostname);
             // need to add reactive annotation to add parallel calls
             responseList.add(this.voteRequestSender.sendVoteRequest(voteRequest, p.hostname));
         }
         responseList.removeAll(Collections.singleton(null));
-        System.out.println("response list size: " + responseList.size());
+//        System.out.println("response list size: " + responseList.size());
         if (responseList.isEmpty() || informationService.currentState == State.FOLLOWER) {
             informationService.currentState = State.FOLLOWER;
             informationService.votedFor = -1;

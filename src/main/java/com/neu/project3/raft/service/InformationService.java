@@ -89,7 +89,7 @@ public class InformationService {
 //            this.logEntryList.add(new LogEntry("init7", 0));
 //            this.logEntryList.add(new LogEntry("init8", 0));
 //        }
-        System.out.println(this.self.hostname);
+//        System.out.println(this.self.hostname);
     }
 
     public static boolean isLeader() {
@@ -148,7 +148,7 @@ public class InformationService {
         List<Peer> peerList = new ArrayList<>();
         peerList.add(peer1);
         peerList.add(peer2);
-//        peerList.add(peer3);
+        peerList.add(peer3);
 //        peerList.add(peer4);
 //        peerList.add(peer5);
         return peerList;

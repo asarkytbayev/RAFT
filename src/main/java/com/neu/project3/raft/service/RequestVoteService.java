@@ -19,7 +19,6 @@ public class RequestVoteService {
 
     public synchronized VoteResponse checkVoteRequest(VoteRequest voteRequest) {
         System.out.println("Received vote request from: " + voteRequest.getCandidateId());
-        System.out.println(Instant.now().toEpochMilli());
         Boolean voteGranted = false;
         if (voteRequest.getTerm() < informationService.currentTerm) {
             voteGranted = false;

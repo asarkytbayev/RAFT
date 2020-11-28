@@ -2,8 +2,6 @@ package com.neu.project3.raft.controller;
 
 import com.neu.project3.raft.models.DBRequest;
 import com.neu.project3.raft.models.DBResponse;
-import com.neu.project3.raft.requests.HeartbeatRequest;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 

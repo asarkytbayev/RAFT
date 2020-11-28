@@ -32,7 +32,7 @@ public class AppendRequestSender {
             return restTemplate.postForObject(getPathToSend(reciever), payload, AppendEntryResponse.class);
         } catch (Exception e) {
             // TODO: long wait after failure to send - why?
-           System.out.println("Error sending append request: " + e.getMessage());
+//           System.err.println("Error sending append request: " + reciever);
            return null;
         }
     }

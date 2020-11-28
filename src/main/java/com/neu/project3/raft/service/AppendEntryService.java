@@ -34,6 +34,7 @@ public class AppendEntryService {
 
     public synchronized AppendEntryResponse handleAppendEntryRequest(AppendEntryRequest appendEntryRequest) {
         informationService.lastTimeStampReceived = Instant.now().toEpochMilli();
+        // TODO how does this work with statements below?
         if (appendEntryRequest.getTerm() >= informationService.currentTerm) {
             informationService.currentState = State.FOLLOWER;
             informationService.currentTerm = appendEntryRequest.getTerm();
@@ -43,7 +44,7 @@ public class AppendEntryService {
 
         int prevLogIndex = appendEntryRequest.getPrevLogIndex();
         int prevLogTerm = appendEntryRequest.getPrevLogTerm();
-        if (informationService.currentTerm > appendEntryRequest.getTerm()){
+        if (informationService.currentTerm > appendEntryRequest.getTerm()) {
             return new AppendEntryResponse(informationService.currentTerm, false, informationService.self.id,
                     false);
         }
