@@ -105,7 +105,7 @@ public class AppendEntryService {
         if (!InformationService.isLeader()) {
             return;
         }
-        InformationService.lastTimeStampReceived = Instant.now().toEpochMilli();
+//        InformationService.lastTimeStampReceived = Instant.now().toEpochMilli();
 //        System.out.println("I'm a " + InformationService.currentState);
         List<Integer> peerReplicationIndices = new ArrayList<>();
         for (Peer peer: InformationService.peerList) {
