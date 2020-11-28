@@ -73,6 +73,7 @@ public class InformationService {
         InformationService.currentLog = 0;
         InformationService.lastTimeStampReceived = Instant.now().toEpochMilli();;
         InformationService.peersLogStatus = new HashMap<>();
+        InformationService.self = InformationService.peerList.get(Integer.parseInt(selfId) - 1);
 
         onLeaderPromotion();
 //        InformationService.logEntryList.add(new LogEntry("init", 0));
