@@ -29,7 +29,7 @@ public class ElectionService {
         this.voteRequestSender = voteRequestSender;
     }
 
-    @Scheduled(fixedDelay = 2000)
+    @Scheduled(fixedDelay = 1000)
     public synchronized void initElection() {
         System.out.println("I'm a " + informationService.currentState);
         System.out.println("Voted for: " + informationService.votedFor);

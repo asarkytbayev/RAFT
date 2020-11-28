@@ -165,7 +165,7 @@ public class AppendEntryService {
                     informationService.peersLogStatus.put(peer, Math.max(-1, currentPeerLogIndex - 1));
                 }
             } else {
-                System.out.println("Null response: " + peer.toString());
+//                System.out.println("Null response: " + peer.toString());
             }
         }
         informationService.commitIndex = getCommitIndex(peerReplicationIndices,
