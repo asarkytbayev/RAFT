@@ -1,7 +1,6 @@
 package com.neu.project3.raft.service;
 
 import com.neu.project3.raft.manager.HeartbeatSender;
-import com.neu.project3.raft.manager.VoteRequestSender;
 import com.neu.project3.raft.models.Peer;
 import com.neu.project3.raft.requests.HeartbeatRequest;
 import com.neu.project3.raft.responses.HeartbeatResponse;
@@ -25,7 +24,7 @@ public class HeartbeatService {
     }
 
     @Scheduled(fixedDelay = 1000)
-    void sendHeartBeat(){
+    void sendHeartBeat() {
         List<HeartbeatResponse> responseList = new ArrayList<>();
         HeartbeatRequest request = getHeartbeatRequest();
         // need to add random delay

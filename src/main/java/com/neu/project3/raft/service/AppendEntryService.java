@@ -4,19 +4,16 @@ import com.neu.project3.raft.manager.AppendRequestSender;
 import com.neu.project3.raft.models.LogEntry;
 import com.neu.project3.raft.models.Peer;
 import com.neu.project3.raft.requests.AppendEntryRequest;
-import com.neu.project3.raft.requests.VoteRequest;
 import com.neu.project3.raft.responses.AppendEntryResponse;
-import com.neu.project3.raft.responses.VoteResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import lombok.extern.java.Log;
 
 @Service
 public class AppendEntryService {
@@ -29,12 +26,15 @@ public class AppendEntryService {
 
     @Autowired
     public AppendEntryService(InformationService informationService,
-                              AppendRequestSender appendRequestSender){
+                              AppendRequestSender appendRequestSender) {
         this.informationService = informationService;
         this.appendRequestSender = appendRequestSender;
     }
 
-    public synchronized AppendEntryResponse handleAppendEntryRequest(AppendEntryRequest appendEntryRequest){
+    public synchronized AppendEntryResponse handleAppendEntryRequest(AppendEntryRequest appendEntryRequest) {
+        InformationService.lastTimeStampReceived = Instant.now().toEpochMilli();
+//        System.out.println("Received append entry request from: " + appendEntryRequest.getSelfId());
+
         int prevLogIndex = appendEntryRequest.getPrevLogIndex();
         int prevLogTerm = appendEntryRequest.getPrevLogTerm();
         if (InformationService.currentTerm > appendEntryRequest.getTerm()){
@@ -55,9 +55,7 @@ public class AppendEntryService {
         return acceptAppendEntryRequest(appendEntryRequest);
     }
 
-
-
-    public AppendEntryResponse acceptAppendEntryRequest(AppendEntryRequest appendReq){
+    public AppendEntryResponse acceptAppendEntryRequest(AppendEntryRequest appendReq) {
         // TODO: Test the behaviour.
         int prevLogIndex = appendReq.getPrevLogIndex();
         List<LogEntry> entriesToAdd = appendReq.getEntries();
@@ -66,7 +64,7 @@ public class AppendEntryService {
 
         InformationService.commitIndex = Math.min(appendReq.getLeaderCommit(),
                 InformationService.logEntryList.size() - 1);
-        System.out.println("\n\nCurrent State: " + InformationService.logEntryList.toString());
+        System.out.println("Current State: " + InformationService.logEntryList.toString());
         return new AppendEntryResponse(InformationService.currentTerm, true, InformationService.self.id,
                 false);
         // 3. if an existing entry conflicts with a new one, delete the existing entry and all that follow it
@@ -87,6 +85,7 @@ public class AppendEntryService {
      * Update commit index based on log indices of the peers.
      */
     public static int getCommitIndex(List<Integer> peerReplicationIndices, int minimumVotes) {
+        System.out.println("getCommitIndex()");
         peerReplicationIndices = peerReplicationIndices.stream().
                 filter(val -> val >= 0).collect(Collectors.toList());
         peerReplicationIndices.sort(Integer::compareTo);
@@ -101,23 +100,31 @@ public class AppendEntryService {
         return result;
     }
 
-    @Scheduled(fixedDelay = 15000)
+    @Scheduled(fixedDelay = 100)
     void sendAppendEntriesToPeers() {
         if (!InformationService.isLeader()) {
             return;
         }
+        InformationService.lastTimeStampReceived = Instant.now().toEpochMilli();
+//        System.out.println("I'm a " + InformationService.currentState);
         List<Integer> peerReplicationIndices = new ArrayList<>();
         for (Peer peer: InformationService.peerList) {
             if (peer.equals(InformationService.self)) {
                 peerReplicationIndices.add(InformationService.logEntryList.size() - 1);
                 continue;
             }
-            Integer currentPeerLogIndex = InformationService.peersLogStatus.get(peer);
+            Integer currentPeerLogIndex = -1;
+            if (!InformationService.peersLogStatus.isEmpty()) {
+                currentPeerLogIndex = InformationService.peersLogStatus.get(peer);
+            }
             int lastEntryTerm = -1;
 
+            // TODO initial election
             // Check if the the index is within boundaries of the log entries.
             if (currentPeerLogIndex >= 0 && currentPeerLogIndex < InformationService.logEntryList.size()) {
-                lastEntryTerm = InformationService.logEntryList.get(currentPeerLogIndex).getTerm();
+                if (!InformationService.logEntryList.isEmpty()) {
+                    lastEntryTerm = InformationService.logEntryList.get(currentPeerLogIndex).getTerm();
+                }
             }
             List<LogEntry> logEntries = new ArrayList<>();
             //Add entries not present in peers that have to be appended.
@@ -134,14 +141,17 @@ public class AppendEntryService {
             appendReq.setPrevLogTerm(lastEntryTerm);
             appendReq.setEntries(logEntries);
 
-            AppendEntryResponse response = this.appendRequestSender.sendAppendResponse(appendReq, peer.getHostname());
+            AppendEntryResponse response = this.appendRequestSender.sendAppendRequest(appendReq, peer.getHostname());
             if (response != null) {
+                InformationService.lastTimeStampReceived = Instant.now().toEpochMilli();
                 if (!response.getLogInConsistent()) {
                     //Able to append logs. So increment the index based on the count of logs added.
-                    int oldIndex = InformationService.peersLogStatus.get(peer);
-                    //System.out.println("Merge Success: " + currentPeerLogIndex + " " + response.toString());
-                    InformationService.peersLogStatus.put(peer, oldIndex + logEntries.size());
-                    peerReplicationIndices.add(oldIndex + logEntries.size());
+                    if (!InformationService.peersLogStatus.isEmpty()) {
+                        int oldIndex = InformationService.peersLogStatus.get(peer);
+                        //System.out.println("Merge Success: " + currentPeerLogIndex + " " + response.toString());
+                        InformationService.peersLogStatus.put(peer, oldIndex + logEntries.size());
+                        peerReplicationIndices.add(oldIndex + logEntries.size());
+                    }
                 } else {
                     //System.out.println("Merge Failed: " + currentPeerLogIndex + " " + response.toString());
                     //Decrement log index if peer doesn't have the entry sent to it currently.

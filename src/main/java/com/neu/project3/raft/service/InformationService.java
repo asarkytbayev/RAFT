@@ -4,14 +4,13 @@ import com.neu.project3.raft.models.LogEntry;
 import com.neu.project3.raft.models.Peer;
 import com.neu.project3.raft.models.State;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,29 +71,30 @@ public class InformationService {
 
         InformationService.currentState = State.FOLLOWER;
         InformationService.currentLog = 0;
-        InformationService.lastTimeStampReceived = 0L;
+        InformationService.lastTimeStampReceived = Instant.now().toEpochMilli();;
         InformationService.peersLogStatus = new HashMap<>();
 
         onLeaderPromotion();
-        InformationService.logEntryList.add(new LogEntry("init", 0));
-
-        //TODO: remove this. Currently added for testing.
-        if (isLeader()) {
-            InformationService.logEntryList.add(new LogEntry("init2", 0));
-            InformationService.logEntryList.add(new LogEntry("init3", 0));
-            InformationService.logEntryList.add(new LogEntry("init4", 0));
-            InformationService.logEntryList.add(new LogEntry("init5", 0));
-            InformationService.logEntryList.add(new LogEntry("init6", 0));
-            InformationService.logEntryList.add(new LogEntry("init7", 0));
-            InformationService.logEntryList.add(new LogEntry("init8", 0));
-        }
+//        InformationService.logEntryList.add(new LogEntry("init", 0));
+//
+//        //TODO: remove this. Currently added for testing.
+//        if (isLeader()) {
+//            InformationService.logEntryList.add(new LogEntry("init2", 0));
+//            InformationService.logEntryList.add(new LogEntry("init3", 0));
+//            InformationService.logEntryList.add(new LogEntry("init4", 0));
+//            InformationService.logEntryList.add(new LogEntry("init5", 0));
+//            InformationService.logEntryList.add(new LogEntry("init6", 0));
+//            InformationService.logEntryList.add(new LogEntry("init7", 0));
+//            InformationService.logEntryList.add(new LogEntry("init8", 0));
+//        }
     }
 
     public static boolean isLeader() {
         //TODO: After leader election code is complete, remove this. Now choosing first host as leader.
-        return InformationService.self != null && InformationService.self.hostname.equals(TEMP_LEADER_NAME);
+//        return InformationService.self != null && InformationService.self.hostname.equals(TEMP_LEADER_NAME);
         //return true;
-        //return InformationService.leader.equals(InformationService.self);
+//        return InformationService.leader.equals(InformationService.self);
+        return InformationService.currentState == State.LEADER;
     }
 
     public static int getMajorityVote() {
@@ -113,17 +113,21 @@ public class InformationService {
 
     private static void initPeerLogsStatus() {
         for (Peer peer : InformationService.peerList) {
-            InformationService.peersLogStatus.put(peer, InformationService.logEntryList.size() - 1);
+            if (!InformationService.logEntryList.isEmpty()) {
+                InformationService.peersLogStatus.put(peer, InformationService.logEntryList.size() - 1);
+            } else {
+                // TODO
+            }
         }
     }
 
     private void saveHostName() {
         try {
-        String hostname = InetAddress.getLocalHost().getHostName().trim();
-        InformationService.self = InformationService.peerList.stream()
-                .filter(peer -> peer.hostname.equals(hostname)).findFirst().get();
+            String hostname = InetAddress.getLocalHost().getHostName().trim();
+            InformationService.self = InformationService.peerList.stream()
+                    .filter(peer -> peer.hostname.equals(hostname)).findFirst().get();
         } catch (Exception ex) {
-            System.out.println("Error in getHostname: " + ex.getMessage());
+            System.out.println("Error in saveHostName(): " + ex.getMessage());
         }
     }
 
@@ -141,9 +145,9 @@ public class InformationService {
         List<Peer> peerList = new ArrayList<>();
         peerList.add(peer1);
         peerList.add(peer2);
-        peerList.add(peer3);
-        peerList.add(peer4);
-        peerList.add(peer5);
+//        peerList.add(peer3);
+//        peerList.add(peer4);
+//        peerList.add(peer5);
         return peerList;
     }
 

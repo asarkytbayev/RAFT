@@ -2,9 +2,7 @@ package com.neu.project3.raft.manager;
 
 import com.neu.project3.raft.factory.HttpEntityFactory;
 import com.neu.project3.raft.factory.HttpHeadersFactory;
-import com.neu.project3.raft.requests.AppendEntryRequest;
 import com.neu.project3.raft.requests.HeartbeatRequest;
-import com.neu.project3.raft.responses.AppendEntryResponse;
 import com.neu.project3.raft.responses.HeartbeatResponse;
 import com.neu.project3.raft.service.InformationService;
 import org.springframework.beans.factory.annotation.Autowired;

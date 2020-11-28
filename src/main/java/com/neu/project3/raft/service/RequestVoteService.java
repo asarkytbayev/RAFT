@@ -2,7 +2,6 @@ package com.neu.project3.raft.service;
 
 import com.neu.project3.raft.requests.VoteRequest;
 import com.neu.project3.raft.responses.VoteResponse;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,8 @@ public class RequestVoteService {
         this.informationService = informationService;
     }
 
-    public synchronized VoteResponse checkVoteRequest(VoteRequest voteRequest){
+    public synchronized VoteResponse checkVoteRequest(VoteRequest voteRequest) {
+        System.out.println("Received vote request from: " + voteRequest.getCandidateId());
         if (InformationService.votedFor == -1 && voteRequest.getLastLogTerm() >= InformationService.currentLog){
             // save voted for information
             return new VoteResponse(InformationService.currentTerm, true, InformationService.self.id);
