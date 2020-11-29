@@ -26,13 +26,13 @@ public class AppendRequestSender {
     }
 
 
-    public AppendEntryResponse sendAppendResponse(AppendEntryRequest appendEntryRequest, String reciever) {
+    public AppendEntryResponse sendAppendRequest(AppendEntryRequest appendEntryRequest, String reciever) {
         try {
             HttpEntity payload = HttpEntityFactory.createObjectWithBodyAndHeaders(getHttpHeaderObject(), appendEntryRequest);
             return restTemplate.postForObject(getPathToSend(reciever), payload, AppendEntryResponse.class);
         } catch (Exception e) {
-            // todo
-           System.out.println("Error sending append-req: " + e.getMessage());
+            // TODO: long wait after failure to send - why?
+//           System.err.println("Error sending append request: " + reciever);
            return null;
         }
     }
