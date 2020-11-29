@@ -148,15 +148,15 @@ public class InformationService {
         // todo, read from file, right now we are hard coding 5 nodes
         Peer peer1 = new Peer(1, TEMP_LEADER_NAME);
         Peer peer2 = new Peer(2, "hostname2");
-        Peer peer3 = new Peer(3, "hostname3");
-        Peer peer4 = new Peer(4, "hostname4");
-        Peer peer5 = new Peer(5, "hostname5");
+//        Peer peer3 = new Peer(3, "hostname3");
+//        Peer peer4 = new Peer(4, "hostname4");
+//        Peer peer5 = new Peer(5, "hostname5");
         List<Peer> peerList = new ArrayList<>();
         peerList.add(peer1);
         peerList.add(peer2);
-        peerList.add(peer3);
-        peerList.add(peer4);
-        peerList.add(peer5);
+//        peerList.add(peer3);
+//        peerList.add(peer4);
+//        peerList.add(peer5);
         return peerList;
     }
 

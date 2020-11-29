@@ -71,7 +71,7 @@ public class AppendEntryService {
 
         informationService.commitIndex = Math.min(appendReq.getLeaderCommit(),
                 informationService.logEntryList.size() - 1);
-//        System.out.println("Current State: " + informationService.logEntryList.toString());
+        System.out.println("Current State: " + informationService.logEntryList.toString());
         return new AppendEntryResponse(informationService.currentTerm, true, informationService.self.id,
                 false);
         // 3. if an existing entry conflicts with a new one, delete the existing entry and all that follow it
