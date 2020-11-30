@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -26,7 +27,7 @@ import java.util.stream.Stream;
 public class InformationService {
 
     /* Temporary leader for now. */
-    private static String TEMP_LEADER_NAME = "hostname1";
+//    private static String TEMP_LEADER_NAME = "hostname1";
 
     /* Persistent State */
     // latest term server has seen
@@ -146,17 +147,17 @@ public class InformationService {
 
     List<Peer> parseFileAndGetPeers(String peerFile) {
         // todo, read from file, right now we are hard coding 5 nodes
-        Peer peer1 = new Peer(1, TEMP_LEADER_NAME);
+        Peer peer1 = new Peer(1, "hostname1");
         Peer peer2 = new Peer(2, "hostname2");
-//        Peer peer3 = new Peer(3, "hostname3");
-//        Peer peer4 = new Peer(4, "hostname4");
-//        Peer peer5 = new Peer(5, "hostname5");
+        Peer peer3 = new Peer(3, "hostname3");
+        Peer peer4 = new Peer(4, "hostname4");
+        Peer peer5 = new Peer(5, "hostname5");
         List<Peer> peerList = new ArrayList<>();
         peerList.add(peer1);
         peerList.add(peer2);
-//        peerList.add(peer3);
-//        peerList.add(peer4);
-//        peerList.add(peer5);
+        peerList.add(peer3);
+        peerList.add(peer4);
+        peerList.add(peer5);
         return peerList;
     }
 

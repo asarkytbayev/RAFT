@@ -38,8 +38,6 @@ public class ElectionService {
         if (informationService.currentState == State.LEADER) {
             long timeout = getRandomNumberUsingNextInt(MIN_LEADER_DELAY, MAX_LEADER_DELAY);
             long leaderTimeout = Instant.now().toEpochMilli() - informationService.leaderTimeStamp;
-//            System.out.println("timeout: " + timeout);
-//            System.out.println("Leader timeout: " + leaderTimeout);
             if (leaderTimeout > timeout) {
                 System.out.println("I've been a leader for a long time");
                 informationService.currentState = State.FOLLOWER;
@@ -50,11 +48,8 @@ public class ElectionService {
         }
 
         long timeout = getRandomNumberUsingNextInt(MIN_ELECTION_DELAY, MAX_ELECTION_DELAY);
-//        System.out.println("timeout: " + timeout);
         long electionTimeout = Instant.now().toEpochMilli() - informationService.lastTimeStampReceived;
-//        System.out.println("election timeout: " + electionTimeout);
         if (electionTimeout < timeout) {
-//            System.out.println("return");
             return;
         }
 
@@ -70,13 +65,10 @@ public class ElectionService {
             if (p == informationService.self) {
                 continue;
             }
-//            System.out.println(Instant.now().toEpochMilli());
-//            System.out.println("sending request vote rpc to: " + p.hostname);
             // need to add reactive annotation to add parallel calls
             responseList.add(this.voteRequestSender.sendVoteRequest(voteRequest, p.hostname));
         }
         responseList.removeAll(Collections.singleton(null));
-//        System.out.println("response list size: " + responseList.size());
         if (responseList.isEmpty() || informationService.currentState == State.FOLLOWER) {
             informationService.currentState = State.FOLLOWER;
             informationService.votedFor = -1;
@@ -103,6 +95,7 @@ public class ElectionService {
         if (votes >= informationService.getMajorityVote()) {
             informationService.currentState = State.LEADER;
             System.out.println("I was elected: " + informationService.currentState);
+            informationService.onLeaderPromotion();
         } else {
             informationService.currentState = State.FOLLOWER;
             informationService.votedFor = -1;
@@ -110,6 +103,7 @@ public class ElectionService {
 //        informationService.votedFor = -1;
         informationService.lastTimeStampReceived = Instant.now().toEpochMilli();
         informationService.leaderTimeStamp = Instant.now().toEpochMilli();
+
     }
 
     private long getRandomNumberUsingNextInt(int min, int max) {
