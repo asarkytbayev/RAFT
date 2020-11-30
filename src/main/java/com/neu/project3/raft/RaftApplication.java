@@ -34,8 +34,8 @@ public class RaftApplication {
     @Bean
     public RestTemplate getRestTemplate() {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        factory.setReadTimeout(15000);
-        factory.setConnectTimeout(15000);
+        factory.setReadTimeout(1000);
+        factory.setConnectTimeout(1000);
         return new RestTemplate(factory);
     }
 

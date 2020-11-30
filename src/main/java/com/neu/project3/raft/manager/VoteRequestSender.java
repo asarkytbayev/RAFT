@@ -2,9 +2,7 @@ package com.neu.project3.raft.manager;
 
 import com.neu.project3.raft.factory.HttpEntityFactory;
 import com.neu.project3.raft.factory.HttpHeadersFactory;
-import com.neu.project3.raft.requests.AppendEntryRequest;
 import com.neu.project3.raft.requests.VoteRequest;
-import com.neu.project3.raft.responses.AppendEntryResponse;
 import com.neu.project3.raft.responses.VoteResponse;
 import com.neu.project3.raft.service.InformationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +17,9 @@ public class VoteRequestSender {
 
     private RestTemplate restTemplate;
     private InformationService informationService;
-    private static final String VOTE_REQUEST_PATH = "";
+//    private static final String VOTE_REQUEST_PATH = "/request_vote/";
+
+    private static final String VOTE_REQUEST_PATH = ":8080/request_vote";
 
     @Autowired
     public VoteRequestSender(RestTemplate restTemplate, InformationService informationService){
@@ -27,12 +27,12 @@ public class VoteRequestSender {
         this.informationService = informationService;
     }
 
-    public VoteResponse sendVoteRequest(VoteRequest voteRequest, Integer peerId) {
+    public VoteResponse sendVoteRequest(VoteRequest voteRequest, String hostname) {
         try {
             HttpEntity payload = HttpEntityFactory.createObjectWithBodyAndHeaders(getHttpHeaderObject(), voteRequest);
-            return restTemplate.postForObject(getPathToSend(peerId), payload, VoteResponse.class);
+            return restTemplate.postForObject(getPathToSend(hostname), payload, VoteResponse.class);
         }catch (Exception e) {
-            // todo
+            System.err.println("sendVoteRequest(): " + hostname);
             return null;
         }
     }
@@ -44,7 +44,11 @@ public class VoteRequestSender {
         return headers;
     }
 
-    private String getPathToSend(Integer peerId){
-        return InformationService.peerList.get(peerId - 1).hostname + VOTE_REQUEST_PATH;
+//    private String getPathToSend(Integer peerId){
+//        return VOTE_REQUEST_PATH + InformationService.peerList.get(peerId - 1).hostname;
+//    }
+
+    private String getPathToSend(String hostname){
+        return "http://" + hostname + VOTE_REQUEST_PATH;
     }
 }

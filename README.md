@@ -1,7 +1,7 @@
 docker network create --driver bridge prj3-network
 docker build . -t prj3
-docker run --rm -it --name server1 --hostname server1 --network prj3-network prj3
-docker run --rm -it --name server2 --hostname server2 --network prj3-network prj3
-docker run --rm -it --name server3 --hostname server3 --network prj3-network prj3
-docker run --rm -it --name server4 --hostname server4 --network prj3-network prj3
-docker run --rm -it --name server5 --hostname server5 --network prj3-network prj3
+docker run --rm -it --name hostname1 --hostname hostname1 --network prj3-network prj3
+docker run --rm -it --name hostname2 --hostname hostname2 --network prj3-network prj3
+docker run --rm -it --name hostname3 --hostname hostname3 --network prj3-network prj3
+docker run --rm -it --name hostname4 --hostname hostname4 --network prj3-network prj3
+docker run --rm -it --name hostname5 --hostname hostname5 --network prj3-network prj3
