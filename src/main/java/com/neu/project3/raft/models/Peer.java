@@ -1,5 +1,6 @@
 package com.neu.project3.raft.models;
 
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
