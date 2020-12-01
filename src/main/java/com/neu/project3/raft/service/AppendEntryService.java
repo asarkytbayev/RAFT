@@ -1,5 +1,6 @@
 package com.neu.project3.raft.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neu.project3.raft.manager.AppendRequestSender;
 import com.neu.project3.raft.models.DBRequest;
 import com.neu.project3.raft.models.LogEntry;
@@ -7,7 +8,6 @@ import com.neu.project3.raft.models.Peer;
 import com.neu.project3.raft.models.State;
 import com.neu.project3.raft.requests.AppendEntryRequest;
 import com.neu.project3.raft.responses.AppendEntryResponse;
-import com.neu.project3.raft.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class AppendEntryService {
 
     private DatabaseService databaseService;
 
-    private JsonUtil jsonUtil;
+    private ObjectMapper objectMapper;
 
     private final int MAX_LOGS_TO_ADD = 5;
 
@@ -36,11 +36,11 @@ public class AppendEntryService {
     public AppendEntryService(InformationService informationService,
                               AppendRequestSender appendRequestSender,
                               DatabaseService databaseService,
-                              JsonUtil objectMapper) {
+                              ObjectMapper objectMapper) {
         this.informationService = informationService;
         this.appendRequestSender = appendRequestSender;
         this.databaseService = databaseService;
-        this.jsonUtil = objectMapper;
+        this.objectMapper = objectMapper;
     }
 
     public synchronized AppendEntryResponse handleAppendEntryRequest(AppendEntryRequest appendEntryRequest) {
@@ -81,7 +81,7 @@ public class AppendEntryService {
         informationService.logEntryList.addAll(entriesToAdd);
         for (LogEntry entry:entriesToAdd){
             try {
-                DBRequest request = jsonUtil.getObject(entry.command, DBRequest.class);
+                DBRequest request = objectMapper.readValue(entry.command, DBRequest.class);
                 if(request.getOp().equals("get")){
                     databaseService.getKey(request);
                 } else if (request.getOp().equals("upsert")){
