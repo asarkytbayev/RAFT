@@ -7,23 +7,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.annotation.Transient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.InetAddress;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -31,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -39,11 +26,7 @@ import java.util.stream.Stream;
 @Setter
 public class InformationService implements Serializable {
 
-    private static String LOCAL_STATE_ROOT_LOCATION = "./state_";
-    //private static String LOCAL_STATE_ROOT_LOCATION = "/app/data/state_";
-
-    /* Temporary leader for now. */
-//    private static String TEMP_LEADER_NAME = "hostname1";
+    private static String LOCAL_STATE_ROOT_LOCATION = "./data/state_";
 
     /* Persistent State */
     // latest term server has seen
@@ -82,11 +65,9 @@ public class InformationService implements Serializable {
     public static Map<Peer, Integer> peersLogStatus;
 
     @Autowired
-    public InformationService(@Value("${peer_file_list}") String peerFile, @Value("${self_id}") String selfId) {
-        this.peerList = parseFileAndGetPeers(peerFile);
+    public InformationService(@Value("${peer_file_list}") String peerFile) {
+        this.peerList = readServersFile(peerFile);
         this.saveHostName();
-//        this.peerList = readServersFile();
-        //this.self = this.peerList.get(Integer.parseInt(selfId)-1);
         this.logEntryList = new ArrayList<>();
         this.currentTerm = 0;
         this.commitIndex = -1;
@@ -97,23 +78,9 @@ public class InformationService implements Serializable {
         this.currentLog = 0;
         this.lastTimeStampReceived = Instant.now().toEpochMilli();;
         this.peersLogStatus = new HashMap<>();
-//        this.self = this.peerList.get(Integer.parseInt(selfId) - 1);
 
         onLeaderPromotion();
         loadLocalState();
-//        this.logEntryList.add(new LogEntry("init", 0));
-//
-//        //TODO: remove this. Currently added for testing.
-//        if (isLeader()) {
-//            this.logEntryList.add(new LogEntry("init2", 0));
-//            this.logEntryList.add(new LogEntry("init3", 0));
-//            this.logEntryList.add(new LogEntry("init4", 0));
-//            this.logEntryList.add(new LogEntry("init5", 0));
-//            this.logEntryList.add(new LogEntry("init6", 0));
-//            this.logEntryList.add(new LogEntry("init7", 0));
-//            this.logEntryList.add(new LogEntry("init8", 0));
-//        }
-//        System.out.println(this.self.hostname);
     }
 
 
@@ -122,66 +89,67 @@ public class InformationService implements Serializable {
         if (hostname == null) {
             return;
         }
-        try {
+        try (
             InputStream fileSt = new FileInputStream(LOCAL_STATE_ROOT_LOCATION + hostname + ".txt");
-            ObjectInput objOut = new ObjectInputStream(fileSt);
-            objOut.readObject();
+            ObjectInput objIn = new ObjectInputStream(fileSt)
+        ) {
+            objIn.readObject();
+            System.out.println("Loaded saved state");
         } catch (FileNotFoundException exp) {
+            System.err.println("File not found: " + exp.getMessage());
         } catch (Exception exp) {
-            System.out.println("Exception while loading state: " + exp.getMessage());
+            System.err.println("Exception while loading state: " + exp.getMessage());
         }
     }
+
 
     private void readObject(java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+        currentTerm = (Integer) in.readObject();
+        votedFor = (Integer) in.readObject();
         logEntryList = (List<LogEntry>) in.readObject();
         commitIndex = (Integer) in.readObject();
         currentLog = (Integer) in.readObject();
-        lastTimeStampReceived = (Long) in.readObject();
         lastTimeStampReceived = (Long) in.readObject();
     }
 
     private void writeObject(java.io.ObjectOutputStream out)
             throws IOException {
         out.defaultWriteObject();
-        //out.writeObject(votedFor);
-        //out.writeObject(currentTerm);
+        out.writeObject(currentTerm);
+        out.writeObject(votedFor);
         out.writeObject(logEntryList);
         out.writeObject(commitIndex);
-        //out.writeObject(lastApplied);
-        //out.writeObject(nextIndex);
-        //out.writeObject(matchIndex);
-        //out.writeObject(peerList);
-        //out.writeObject(leader);
-        //out.writeObject(currentState);
         out.writeObject(currentLog);
-        out.writeObject(lastTimeStampReceived);
         out.writeObject(lastTimeStampReceived);
     }
 
-    @Scheduled(fixedDelay = 7000)
+    private void readObjectNoData()
+            throws ObjectStreamException {
+    }
+
+
+    @Scheduled(fixedDelay = 1000)
     private void saveLocalState() {
         String hostname = self != null ? self.hostname : null;
         if (hostname == null) {
             return;
         }
-        try {
+        try (
             OutputStream fileSt = new FileOutputStream(LOCAL_STATE_ROOT_LOCATION+ hostname + ".txt", false);
-            ObjectOutput objSt = new ObjectOutputStream(fileSt);
+            ObjectOutput objSt = new ObjectOutputStream(fileSt)
+        ) {
             objSt.writeObject(this);
-            objSt.close();
-            fileSt.close();
+            System.out.println("Saved local state");
         } catch (Exception exp) {
-            System.out.println("Exception while saving state: " + exp.getMessage());
+            System.err.println("Exception while saving state: " + exp.getMessage());
+            exp.printStackTrace();
         }
     }
 
     public static boolean isLeader() {
         //TODO: After leader election code is complete, remove this. Now choosing first host as leader.
-//        return this.self != null && this.self.hostname.equals(TEMP_LEADER_NAME);
-        //return true;
-//        return this.leader.equals(this.self);
         return currentState == State.LEADER;
     }
 
@@ -220,33 +188,10 @@ public class InformationService implements Serializable {
         }
     }
 
-    public Peer getLeader() {
-        return leader;
-    }
-
-    List<Peer> parseFileAndGetPeers(String peerFile) {
-        // todo, read from file, right now we are hard coding 5 nodes
-        Peer peer1 = new Peer(1, "hostname1");
-        Peer peer2 = new Peer(2, "hostname2");
-        Peer peer3 = new Peer(3, "hostname3");
-        Peer peer4 = new Peer(4, "hostname4");
-        Peer peer5 = new Peer(5, "hostname5");
-        List<Peer> peerList = new ArrayList<>();
-        peerList.add(peer1);
-        peerList.add(peer2);
-        peerList.add(peer3);
-        peerList.add(peer4);
-        peerList.add(peer5);
-        return peerList;
-    }
-
-    private List<Peer> readServersFile() {
-//        String filePath = "src/main/java/com/neu/project3/raft/data/hostnames";
-        String filePath = "com/neu/project3/raft/data/hostnames";
+    private List<Peer> readServersFile(String filePath) {
         List<Peer> peers = new ArrayList<>();
         try (Stream<String> stream = Files.lines(Paths.get(filePath))) {
             stream.map(this::constructPeer).forEach(peers::add);
-//            peers.forEach(System.out::println);
         } catch (IOException e) {
             System.err.println("Failed to open servers file");
             e.printStackTrace();
