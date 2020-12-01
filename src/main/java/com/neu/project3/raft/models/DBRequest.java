@@ -1,16 +1,17 @@
 package com.neu.project3.raft.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
+@NoArgsConstructor
 public class DBRequest {
     private String key;
     private String op;
     private String value;
+
+    public String toString(){
+        return "{'key':" + key + ",'value':" + value + ",'op':'" + op + "'}";
+    }
 }
