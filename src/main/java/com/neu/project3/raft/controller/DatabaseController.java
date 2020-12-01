@@ -1,5 +1,6 @@
 package com.neu.project3.raft.controller;
 
+import com.neu.project3.raft.manager.DatabaseRequestSender;
 import com.neu.project3.raft.models.DBRequest;
 import com.neu.project3.raft.models.DBResponse;
 import com.neu.project3.raft.models.LogEntry;
@@ -15,15 +16,20 @@ public class DatabaseController {
 
     private InformationService informationService;
     private DatabaseService databaseService;
+    private DatabaseRequestSender databaseRequestSender;
 
     @Autowired
-    public DatabaseController(InformationService informationService, DatabaseService databaseService){
+    public DatabaseController(InformationService informationService, DatabaseService databaseService, DatabaseRequestSender sender){
         this.informationService = informationService;
         this.databaseService = databaseService;
+        this.databaseRequestSender = sender;
     }
 
     @PostMapping(value = "/upsert_key")
     public  DBResponse upsertRequest(@RequestBody DBRequest request) {
+        if (!InformationService.isLeader()){
+            return this.databaseRequestSender.sendUpsert(request);
+        }
         DBResponse response = this.databaseService.upsertKey(request);
         informationService.logEntryList.add(new LogEntry(request.toString(), informationService.currentTerm));
         return response;
@@ -31,6 +37,9 @@ public class DatabaseController {
 
     @PostMapping(value = "/delete_key")
     public  DBResponse deleteKey(@RequestBody DBRequest request){
+        if (!InformationService.isLeader()){
+            return this.databaseRequestSender.sendDelete(request);
+        }
         DBResponse response = this.databaseService.deleteKey(request);
         informationService.logEntryList.add(new LogEntry(request.toString(), informationService.currentTerm));
         return response;
@@ -38,6 +47,9 @@ public class DatabaseController {
 
     @PostMapping(value = "/get_key")
     public DBResponse getRequest(@RequestBody DBRequest request){
+        if (!InformationService.isLeader()){
+            return this.databaseRequestSender.sendGet(request);
+        }
         DBResponse response = this.databaseService.getKey(request);
         informationService.logEntryList.add(new LogEntry(request.toString(), informationService.currentTerm));
         return response;

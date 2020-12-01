@@ -1,15 +1,18 @@
 package com.neu.project3.raft.service;
 
 import com.neu.project3.raft.manager.AppendRequestSender;
+import com.neu.project3.raft.models.DBRequest;
 import com.neu.project3.raft.models.LogEntry;
 import com.neu.project3.raft.models.Peer;
 import com.neu.project3.raft.models.State;
 import com.neu.project3.raft.requests.AppendEntryRequest;
 import com.neu.project3.raft.responses.AppendEntryResponse;
+import com.neu.project3.raft.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,13 +26,21 @@ public class AppendEntryService {
 
     private AppendRequestSender appendRequestSender;
 
+    private DatabaseService databaseService;
+
+    private JsonUtil jsonUtil;
+
     private final int MAX_LOGS_TO_ADD = 5;
 
     @Autowired
     public AppendEntryService(InformationService informationService,
-                              AppendRequestSender appendRequestSender) {
+                              AppendRequestSender appendRequestSender,
+                              DatabaseService databaseService,
+                              JsonUtil objectMapper) {
         this.informationService = informationService;
         this.appendRequestSender = appendRequestSender;
+        this.databaseService = databaseService;
+        this.jsonUtil = objectMapper;
     }
 
     public synchronized AppendEntryResponse handleAppendEntryRequest(AppendEntryRequest appendEntryRequest) {
@@ -68,7 +79,21 @@ public class AppendEntryService {
         List<LogEntry> entriesToAdd = appendReq.getEntries();
         informationService.logEntryList = informationService.logEntryList.subList(0, prevLogIndex + 1);
         informationService.logEntryList.addAll(entriesToAdd);
+        for (LogEntry entry:entriesToAdd){
+            try {
+                DBRequest request = jsonUtil.getObject(entry.command, DBRequest.class);
+                if(request.getOp().equals("get")){
+                    databaseService.getKey(request);
+                } else if (request.getOp().equals("upsert")){
+                    databaseService.upsertKey(request);
+                } else {
+                    databaseService.deleteKey(request);
+                }
 
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         informationService.commitIndex = Math.min(appendReq.getLeaderCommit(),
                 informationService.logEntryList.size() - 1);
         System.out.println("Current State: " + informationService.logEntryList.toString());
