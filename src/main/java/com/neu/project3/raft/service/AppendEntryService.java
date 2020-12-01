@@ -133,12 +133,10 @@ public class AppendEntryService {
     }
 
     @Scheduled(fixedDelay = 100)
-    void sendAppendEntriesToPeers() {
+    public void sendAppendEntriesToPeers() {
         if (!informationService.isLeader()) {
             return;
         }
-//        informationService.lastTimeStampReceived = Instant.now().toEpochMilli();
-//        System.out.println("I'm a " + informationService.currentState);
         List<Integer> peerReplicationIndices = new ArrayList<>();
         for (Peer peer: informationService.peerList) {
             if (peer.equals(informationService.self)) {
