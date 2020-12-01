@@ -7,10 +7,23 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.annotation.Transient;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.InetAddress;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -24,7 +37,10 @@ import java.util.stream.Stream;
 @Service
 @Getter
 @Setter
-public class InformationService {
+public class InformationService implements Serializable {
+
+    private static String LOCAL_STATE_ROOT_LOCATION = "./state_";
+    //private static String LOCAL_STATE_ROOT_LOCATION = "/app/data/state_";
 
     /* Temporary leader for now. */
 //    private static String TEMP_LEADER_NAME = "hostname1";
@@ -34,6 +50,7 @@ public class InformationService {
     public static volatile Integer votedFor;
 
     // candidate id that received vote in current term
+
     public static volatile Integer currentTerm;
 
     // log entries, first index is 1
@@ -83,6 +100,7 @@ public class InformationService {
 //        this.self = this.peerList.get(Integer.parseInt(selfId) - 1);
 
         onLeaderPromotion();
+        loadLocalState();
 //        this.logEntryList.add(new LogEntry("init", 0));
 //
 //        //TODO: remove this. Currently added for testing.
@@ -96,6 +114,67 @@ public class InformationService {
 //            this.logEntryList.add(new LogEntry("init8", 0));
 //        }
 //        System.out.println(this.self.hostname);
+    }
+
+
+    private void loadLocalState() {
+        String hostname = self != null ? self.hostname : null;
+        if (hostname == null) {
+            return;
+        }
+        try {
+            InputStream fileSt = new FileInputStream(LOCAL_STATE_ROOT_LOCATION + hostname + ".txt");
+            ObjectInput objOut = new ObjectInputStream(fileSt);
+            objOut.readObject();
+        } catch (FileNotFoundException exp) {
+        } catch (Exception exp) {
+            System.out.println("Exception while loading state: " + exp.getMessage());
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        logEntryList = (List<LogEntry>) in.readObject();
+        commitIndex = (Integer) in.readObject();
+        currentLog = (Integer) in.readObject();
+        lastTimeStampReceived = (Long) in.readObject();
+        lastTimeStampReceived = (Long) in.readObject();
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out)
+            throws IOException {
+        out.defaultWriteObject();
+        //out.writeObject(votedFor);
+        //out.writeObject(currentTerm);
+        out.writeObject(logEntryList);
+        out.writeObject(commitIndex);
+        //out.writeObject(lastApplied);
+        //out.writeObject(nextIndex);
+        //out.writeObject(matchIndex);
+        //out.writeObject(peerList);
+        //out.writeObject(leader);
+        //out.writeObject(currentState);
+        out.writeObject(currentLog);
+        out.writeObject(lastTimeStampReceived);
+        out.writeObject(lastTimeStampReceived);
+    }
+
+    @Scheduled(fixedDelay = 7000)
+    private void saveLocalState() {
+        String hostname = self != null ? self.hostname : null;
+        if (hostname == null) {
+            return;
+        }
+        try {
+            OutputStream fileSt = new FileOutputStream(LOCAL_STATE_ROOT_LOCATION+ hostname + ".txt", false);
+            ObjectOutput objSt = new ObjectOutputStream(fileSt);
+            objSt.writeObject(this);
+            objSt.close();
+            fileSt.close();
+        } catch (Exception exp) {
+            System.out.println("Exception while saving state: " + exp.getMessage());
+        }
     }
 
     public static boolean isLeader() {
