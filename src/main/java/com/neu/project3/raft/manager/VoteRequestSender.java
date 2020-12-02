@@ -4,7 +4,6 @@ import com.neu.project3.raft.factory.HttpEntityFactory;
 import com.neu.project3.raft.factory.HttpHeadersFactory;
 import com.neu.project3.raft.requests.VoteRequest;
 import com.neu.project3.raft.responses.VoteResponse;
-import com.neu.project3.raft.service.InformationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -15,16 +14,13 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class VoteRequestSender {
 
-    private RestTemplate restTemplate;
-    private InformationService informationService;
-//    private static final String VOTE_REQUEST_PATH = "/request_vote/";
+    private final RestTemplate restTemplate;
 
     private static final String VOTE_REQUEST_PATH = ":8080/request_vote";
 
     @Autowired
-    public VoteRequestSender(RestTemplate restTemplate, InformationService informationService){
+    public VoteRequestSender(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
-        this.informationService = informationService;
     }
 
     public VoteResponse sendVoteRequest(VoteRequest voteRequest, String hostname) {
@@ -43,10 +39,6 @@ public class VoteRequestSender {
         headers.add("cache-control", "no-cache");
         return headers;
     }
-
-//    private String getPathToSend(Integer peerId){
-//        return VOTE_REQUEST_PATH + InformationService.peerList.get(peerId - 1).hostname;
-//    }
 
     private String getPathToSend(String hostname){
         return "http://" + hostname + VOTE_REQUEST_PATH;

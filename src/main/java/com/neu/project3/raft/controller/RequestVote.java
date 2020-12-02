@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RequestVote {
 
-    private RequestVoteService requestVoteService;
+    private final RequestVoteService requestVoteService;
 
     @Autowired
     RequestVote(RequestVoteService requestVoteService){

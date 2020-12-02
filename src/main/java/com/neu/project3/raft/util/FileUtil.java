@@ -8,9 +8,8 @@ public class FileUtil {
     public static String readFile(String filePath) throws IOException {
         try (InputStream inputStream = FileUtil.class.getResourceAsStream("/peer_list.txt");
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            String contents = reader.lines()
+            return reader.lines()
                     .collect(Collectors.joining(System.lineSeparator()));
-            return contents;
         }
 //        File file = new ClassPathResource(
 //                "static/peer_list.txt").getFile();

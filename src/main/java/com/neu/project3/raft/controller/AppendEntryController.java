@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AppendEntryController {
 
-    private AppendEntryService appendEntryService;
+    private final AppendEntryService appendEntryService;
 
     @Autowired
     public AppendEntryController(AppendEntryService appendEntryService){

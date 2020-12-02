@@ -15,16 +15,14 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class DatabaseRequestSender {
 
-    private RestTemplate restTemplate;
-    private InformationService informationService;
+    private final RestTemplate restTemplate;
     private static final String GET_PATH = ":8080/get_key";
     private static final String UPSERT_PATH = ":8080/upsert_key";
     private static final String DELETE_PATH = ":8080/delete_key";
 
     @Autowired
-    public DatabaseRequestSender(RestTemplate restTemplate, InformationService informationService){
+    public DatabaseRequestSender(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
-        this.informationService = informationService;
     }
 
     public DBResponse sendGet(DBRequest request) {
