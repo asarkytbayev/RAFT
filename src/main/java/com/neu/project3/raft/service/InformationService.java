@@ -119,6 +119,7 @@ public class InformationService implements Serializable {
         out.defaultWriteObject();
         out.writeObject(currentTerm);
         out.writeObject(votedFor);
+        // TODO serialize
         out.writeObject(logEntryList);
         out.writeObject(commitIndex);
         out.writeObject(currentLog);
@@ -140,7 +141,8 @@ public class InformationService implements Serializable {
             OutputStream fileSt = new FileOutputStream(LOCAL_STATE_ROOT_LOCATION+ hostname + ".txt", false);
             ObjectOutput objSt = new ObjectOutputStream(fileSt)
         ) {
-            objSt.writeObject(this);
+            // TODO serialization
+//            objSt.writeObject(this);
             System.out.println("Saved local state");
         } catch (Exception exp) {
             System.err.println("Exception while saving state: " + exp.getMessage());

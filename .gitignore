@@ -29,5 +29,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+###
+state_hostname*.txt
+
 ### VS Code ###
 .vscode/

@@ -56,7 +56,7 @@ public class DatabaseController {
             return this.databaseRequestSender.sendGet(request);
         }
         DBResponse response = this.databaseService.getKey(request);
-        informationService.logEntryList.add(new LogEntry(request.toString(), informationService.currentTerm));
+//        informationService.logEntryList.add(new LogEntry(request.toString(), informationService.currentTerm));
         appendEntryService.sendAppendEntriesToPeers();
         return response;
     }

@@ -50,6 +50,7 @@ public class AppendEntryService {
             informationService.currentState = State.FOLLOWER;
             informationService.currentTerm = appendEntryRequest.getTerm();
         }
+        informationService.leader = new Peer(appendEntryRequest.getSelfId(), "hostname" + appendEntryRequest.getSelfId());
 
 //        System.out.println("Received append entry request from: " + appendEntryRequest.getSelfId());
 
