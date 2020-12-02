@@ -1,5 +1,6 @@
 package com.neu.project3.raft.service;
 
+import com.neu.project3.raft.models.State;
 import com.neu.project3.raft.requests.VoteRequest;
 import com.neu.project3.raft.responses.VoteResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,10 @@ public class RequestVoteService {
     public synchronized VoteResponse checkVoteRequest(VoteRequest voteRequest) {
         System.out.println("Received vote request from: " + voteRequest.getCandidateId());
         Boolean voteGranted = false;
+        if (voteRequest.getTerm() > informationService.currentTerm) {
+            informationService.currentTerm = voteRequest.getTerm();
+            informationService.currentState = State.FOLLOWER;
+        }
         if (voteRequest.getTerm() < informationService.currentTerm) {
             voteGranted = false;
             return new VoteResponse(informationService.currentTerm, voteGranted, informationService.self.id);

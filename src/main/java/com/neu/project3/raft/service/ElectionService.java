@@ -35,18 +35,6 @@ public class ElectionService {
         System.out.println("Voted for: " + informationService.votedFor);
         System.out.println("Current term: " + informationService.currentTerm);
 
-        if (informationService.currentState == State.LEADER) {
-            long timeout = getRandomNumberUsingNextInt(MIN_LEADER_DELAY, MAX_LEADER_DELAY);
-            long leaderTimeout = Instant.now().toEpochMilli() - informationService.leaderTimeStamp;
-            if (leaderTimeout > timeout) {
-                System.out.println("I've been a leader for a long time");
-                informationService.currentState = State.FOLLOWER;
-                informationService.votedFor = -1;
-                informationService.lastTimeStampReceived = Instant.now().toEpochMilli();
-                return;
-            }
-        }
-
         long timeout = getRandomNumberUsingNextInt(MIN_ELECTION_DELAY, MAX_ELECTION_DELAY);
         long electionTimeout = Instant.now().toEpochMilli() - informationService.lastTimeStampReceived;
         if (electionTimeout < timeout) {
@@ -92,7 +80,7 @@ public class ElectionService {
         long votes = responseList.stream()
                 .filter(VoteResponse::getVoteGranted)
                 .count() + 1;
-        if (votes >= informationService.getMajorityVote()) {
+        if (votes >= informationService.getMajorityVote() && informationService.currentState == State.CANDIDATE) {
             informationService.currentState = State.LEADER;
             System.out.println("I was elected: " + informationService.currentState);
             informationService.onLeaderPromotion();

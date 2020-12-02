@@ -174,6 +174,10 @@ public class AppendEntryService {
             AppendEntryResponse response = this.appendRequestSender.sendAppendRequest(appendReq, peer.getHostname());
             if (response != null) {
                 informationService.lastTimeStampReceived = Instant.now().toEpochMilli();
+                if (response.getTerm() > informationService.currentTerm) {
+                    informationService.currentState =  State.FOLLOWER;
+                    return;
+                }
                 if (!response.getLogInConsistent()) {
                     //Able to append logs. So increment the index based on the count of logs added.
                     if (!informationService.peersLogStatus.isEmpty()) {
