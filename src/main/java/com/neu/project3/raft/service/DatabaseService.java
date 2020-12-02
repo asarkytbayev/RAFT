@@ -10,7 +10,7 @@ import java.util.HashMap;
 @Service
 public class DatabaseService {
 
-    private volatile HashMap<String, String> db;
+    private final HashMap<String, String> db;
 
     @Autowired
     public DatabaseService(){

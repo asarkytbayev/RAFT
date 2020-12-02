@@ -60,24 +60,23 @@ public class InformationService implements Serializable {
     public static volatile State currentState;
     public static volatile Integer currentLog;
     public static volatile Long lastTimeStampReceived;
-    public static volatile Long leaderTimeStamp;
 
     public static Map<Peer, Integer> peersLogStatus;
 
     @Autowired
     public InformationService(@Value("${peer_file_list}") String peerFile) {
-        this.peerList = readServersFile(peerFile);
+        peerList = readServersFile(peerFile);
         this.saveHostName();
-        this.logEntryList = new ArrayList<>();
-        this.currentTerm = 0;
-        this.commitIndex = -1;
-        this.currentLog = 0;
-        this.votedFor = -1;
+        logEntryList = new ArrayList<>();
+        currentTerm = 0;
+        commitIndex = -1;
+        currentLog = 0;
+        votedFor = -1;
 
-        this.currentState = State.FOLLOWER;
-        this.currentLog = 0;
-        this.lastTimeStampReceived = Instant.now().toEpochMilli();;
-        this.peersLogStatus = new HashMap<>();
+        currentState = State.FOLLOWER;
+        currentLog = 0;
+        lastTimeStampReceived = Instant.now().toEpochMilli();
+        peersLogStatus = new HashMap<>();
 
         onLeaderPromotion();
         loadLocalState();
@@ -128,6 +127,7 @@ public class InformationService implements Serializable {
 
     private void readObjectNoData()
             throws ObjectStreamException {
+        // TODO
     }
 
 
@@ -183,7 +183,7 @@ public class InformationService implements Serializable {
         try {
             String hostname = InetAddress.getLocalHost().getHostName().trim();
             System.out.println(hostname);
-            this.self = this.peerList.stream()
+            self = peerList.stream()
                     .filter(peer -> peer.hostname.equals(hostname)).findFirst().get();
         } catch (Exception ex) {
             System.out.println("Error in saveHostName(): " + ex.getMessage());
@@ -203,7 +203,6 @@ public class InformationService implements Serializable {
 
     private Peer constructPeer(String hostname) {
         Integer id = Integer.parseInt(hostname.replaceAll("\\D+",""));
-        String name = hostname;
-        return new Peer(id, name);
+        return new Peer(id, hostname);
     }
 }
