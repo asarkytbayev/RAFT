@@ -5,7 +5,7 @@ We use Raft algorithm to maintain consistency among servers that host database.
 
 The servers present as part of the database network are listed in the file `src/main/resources/peer_file.txt`.
 
-##### Follow the steps below to create a simple network consisting of 3 database servers.
+##### Follow the steps below to create a simple network consisting of 5 database servers.
 - Create a docker network by running
     > docker network create --driver bridge prj3-network  
 
@@ -27,9 +27,9 @@ The servers present as part of the database network are listed in the file `src/
   
     > docker container inspect DOCKER_CONTAINER  
 
--   Send network requests using postman by using the IP address obtained above. The     requests get forwarded to the leader which then performs the corresponding            operation.
+-   Send network requests using postman by using the IP address obtained above. The requests get forwarded to the leader which then performs the corresponding            operation.
     > IP_ADDRESS_OF_DOCKER_CONTAINER:8080/upsert_key  
     
 -   To crash a peer or leader use `docker kill <container_name>.
 
-Logs get replicated across these servers. Leader-crash, follower crash, log replication, network partitions, insert key to the database, delete key from a database, fetch key from a datbase, crash and restore a datbase server scenarious can be tested. 
+Logs get replicated across these servers. Leader-crash, follower crash, log replication, network partitions, insert key to the database, delete key from a database, fetch key from a database, crash and restore a database server scenarious can be tested. 
