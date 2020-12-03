@@ -4,7 +4,6 @@ import com.neu.project3.raft.factory.HttpEntityFactory;
 import com.neu.project3.raft.factory.HttpHeadersFactory;
 import com.neu.project3.raft.requests.AppendEntryRequest;
 import com.neu.project3.raft.responses.AppendEntryResponse;
-import com.neu.project3.raft.service.InformationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -15,24 +14,22 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class AppendRequestSender {
 
-    private RestTemplate restTemplate;
-    private InformationService informationService;
+    private final RestTemplate restTemplate;
     private static final String APPEND_PATH = ":8080/append_entry";
 
     @Autowired
-    public AppendRequestSender(RestTemplate restTemplate, InformationService informationService){
+    public AppendRequestSender(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
-        this.informationService = informationService;
     }
 
 
-    public AppendEntryResponse sendAppendRequest(AppendEntryRequest appendEntryRequest, String reciever) {
+    public AppendEntryResponse sendAppendRequest(AppendEntryRequest appendEntryRequest, String receiver) {
         try {
             HttpEntity payload = HttpEntityFactory.createObjectWithBodyAndHeaders(getHttpHeaderObject(), appendEntryRequest);
-            return restTemplate.postForObject(getPathToSend(reciever), payload, AppendEntryResponse.class);
+            return restTemplate.postForObject(getPathToSend(receiver), payload, AppendEntryResponse.class);
         } catch (Exception e) {
             // TODO: long wait after failure to send - why?
-//           System.err.println("Error sending append request: " + reciever);
+//           System.err.println("Error sending append request: " + receiver);
            return null;
         }
     }

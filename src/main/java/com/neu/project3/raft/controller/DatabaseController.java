@@ -15,15 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DatabaseController {
 
-    private InformationService informationService;
-    private DatabaseService databaseService;
-    private DatabaseRequestSender databaseRequestSender;
-    private AppendEntryService appendEntryService;
+    private final DatabaseService databaseService;
+    private final DatabaseRequestSender databaseRequestSender;
+    private final AppendEntryService appendEntryService;
 
     @Autowired
-    public DatabaseController(InformationService informationService, DatabaseService databaseService,
+    public DatabaseController(DatabaseService databaseService,
                               DatabaseRequestSender sender, AppendEntryService appendEntryService){
-        this.informationService = informationService;
         this.databaseService = databaseService;
         this.databaseRequestSender = sender;
         this.appendEntryService = appendEntryService;
@@ -35,7 +33,7 @@ public class DatabaseController {
             return this.databaseRequestSender.sendUpsert(request);
         }
         DBResponse response = this.databaseService.upsertKey(request);
-        informationService.logEntryList.add(new LogEntry(request.toString(), informationService.currentTerm));
+        InformationService.logEntryList.add(new LogEntry(request.toString(), InformationService.currentTerm));
         return response;
     }
 
@@ -45,7 +43,7 @@ public class DatabaseController {
             return this.databaseRequestSender.sendDelete(request);
         }
         DBResponse response = this.databaseService.deleteKey(request);
-        informationService.logEntryList.add(new LogEntry(request.toString(), informationService.currentTerm));
+        InformationService.logEntryList.add(new LogEntry(request.toString(), InformationService.currentTerm));
         appendEntryService.sendAppendEntriesToPeers();
         return response;
     }
