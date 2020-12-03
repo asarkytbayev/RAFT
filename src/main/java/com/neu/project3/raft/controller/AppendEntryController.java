@@ -20,7 +20,6 @@ public class AppendEntryController {
 
     @PostMapping(value = "/append_entry")
     AppendEntryResponse requestVote(@RequestBody AppendEntryRequest request) {
-        //System.out.println("Received append entry: " + request.toString());
         return this.appendEntryService.handleAppendEntryRequest(request);
     }
 }

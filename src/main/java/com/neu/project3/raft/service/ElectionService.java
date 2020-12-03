@@ -34,6 +34,7 @@ public class ElectionService {
         System.out.println("I'm a " + informationService.currentState);
         System.out.println("Voted for: " + informationService.votedFor);
         System.out.println("Current term: " + informationService.currentTerm);
+        System.out.println("State: " + informationService.logEntryList);
 
         long timeout = getRandomNumberUsingNextInt(MIN_ELECTION_DELAY, MAX_ELECTION_DELAY);
         long electionTimeout = Instant.now().toEpochMilli() - informationService.lastTimeStampReceived;

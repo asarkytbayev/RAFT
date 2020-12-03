@@ -78,7 +78,7 @@ public class AppendEntryService {
         // TODO: Test the behaviour.
         int prevLogIndex = appendReq.getPrevLogIndex();
         List<LogEntry> entriesToAdd = appendReq.getEntries();
-        informationService.logEntryList = informationService.logEntryList.subList(0, prevLogIndex + 1);
+        informationService.logEntryList = new ArrayList<>(informationService.logEntryList.subList(0, prevLogIndex + 1));
         informationService.logEntryList.addAll(entriesToAdd);
         for (LogEntry entry:entriesToAdd){
             try {
@@ -97,7 +97,6 @@ public class AppendEntryService {
         }
         informationService.commitIndex = Math.min(appendReq.getLeaderCommit(),
                 informationService.logEntryList.size() - 1);
-        System.out.println("Current State: " + informationService.logEntryList.toString());
         return new AppendEntryResponse(informationService.currentTerm, true, informationService.self.id,
                 false);
         // 3. if an existing entry conflicts with a new one, delete the existing entry and all that follow it

@@ -3,7 +3,10 @@ package com.neu.project3.raft.service;
 import com.neu.project3.raft.models.LogEntry;
 import com.neu.project3.raft.models.Peer;
 import com.neu.project3.raft.models.State;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +29,7 @@ import java.util.stream.Stream;
 @Setter
 public class InformationService implements Serializable {
 
-    private static String LOCAL_STATE_ROOT_LOCATION = "./data/state_";
+    private static String LOCAL_STATE_ROOT_LOCATION = "/app/volume/state_";
 
     /* Persistent State */
     // latest term server has seen
@@ -83,8 +86,7 @@ public class InformationService implements Serializable {
         loadLocalState();
     }
 
-
-    private void loadLocalState() {
+    private static void loadLocalState() {
         String hostname = self != null ? self.hostname : null;
         if (hostname == null) {
             return;
@@ -94,6 +96,8 @@ public class InformationService implements Serializable {
             ObjectInput objIn = new ObjectInputStream(fileSt)
         ) {
             objIn.readObject();
+            fileSt.close();
+            objIn.close();
             System.out.println("Loaded saved state");
         } catch (FileNotFoundException exp) {
             System.err.println("File not found: " + exp.getMessage());
@@ -111,6 +115,7 @@ public class InformationService implements Serializable {
         logEntryList = (List<LogEntry>) in.readObject();
         commitIndex = (Integer) in.readObject();
         currentLog = (Integer) in.readObject();
+        currentTerm = (Integer) in.readObject();
         lastTimeStampReceived = (Long) in.readObject();
     }
 
@@ -123,6 +128,7 @@ public class InformationService implements Serializable {
         out.writeObject(logEntryList);
         out.writeObject(commitIndex);
         out.writeObject(currentLog);
+        out.writeObject(currentTerm);
         out.writeObject(lastTimeStampReceived);
     }
 
@@ -138,11 +144,13 @@ public class InformationService implements Serializable {
             return;
         }
         try (
-            OutputStream fileSt = new FileOutputStream(LOCAL_STATE_ROOT_LOCATION+ hostname + ".txt", false);
+            OutputStream fileSt = new FileOutputStream(LOCAL_STATE_ROOT_LOCATION + hostname + ".txt", false);
             ObjectOutput objSt = new ObjectOutputStream(fileSt)
         ) {
             // TODO serialization
-//            objSt.writeObject(this);
+            objSt.writeObject(this);
+            objSt.close();
+            fileSt.close();
             System.out.println("Saved local state");
         } catch (Exception exp) {
             System.err.println("Exception while saving state: " + exp.getMessage());
@@ -196,6 +204,7 @@ public class InformationService implements Serializable {
             stream.map(this::constructPeer).forEach(peers::add);
         } catch (IOException e) {
             System.err.println("Failed to open servers file");
+
             e.printStackTrace();
         }
         return peers;
