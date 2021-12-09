@@ -1,6 +1,8 @@
 
 # Fault Tolerant Key-Value Store using Raft algorithm.
 
+Presentation uploaded to Google Drive: https://drive.google.com/file/d/1Ygh8zZ43BwjGIlL4en_hmlioj6RzA62h/view?usp=sharing
+
 We use Raft algorithm to maintain consistency among servers that host database.
 
 The servers present as part of the database network are listed in the file `src/main/resources/peer_file.txt`.
